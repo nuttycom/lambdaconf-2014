@@ -1,10 +1,14 @@
-% Complexity and Reasoning in Functional Programming
-% Kris Nuttycombe<br/> <kris@nutty.land>
-% April 19, 2014
+# Complexity and Reasoning in Functional Programming
 
-# Perfect Software
+[Kris Nuttycombe](http://github.com/nuttycom)
 
-## "Let me take you on an adventure which will give you superpowers." --@bitemyapp
+April 19, 2014
+
+#
+
+> "Let me take you on an adventure which will give you superpowers."
+
+[Chris Allen](https://twitter.com/bitemyapp/status/455464035987623936)
 
 <div class="notes">
 
@@ -20,13 +24,11 @@ programmer has not prepared the program to operate correctly from.
 
 </div>
 
-# Programs
+#
 
-  * What is a program?
+## What is a program?
 
-  * What does it mean for a program to be correct?
-
-  * What space does this leave for errors?
+![](./img/moviecode.jpg)
 
 <div class="notes">
 
@@ -38,6 +40,62 @@ responsible for providing or interpreting the data being transformed.
 You'll note that I say "describes the transformation" rather than "transforms."
 Even if a program is never evaluated, it describes a fact about the universe:
 that some input data can be combined or reduced to yield some output data. 
+
+Now, I'm going to write the simplest program possible.
+
+By the way. I'm going to jump confusingly back and forth
+between Haskell and Scala in this talk, mostly because I don't know Haskell
+very well. For the things I know how to express in it, it's just flat out
+better at expressing them than Scala is, but I think that for some other
+things, until you get used to Haskell syntax, Scala is better. This is 
+an opinion some of you will probably throw tomatoes at me for holding; that's
+fine.
+
+</div>
+
+#
+
+## A very simple program
+
+~~~{.haskell }
+True
+~~~
+
+<div class="fragment">
+
+This program represents a single state.
+
+</div>
+
+#
+
+~~~{.haskell}
+data Bool = True | False
+
+bool :: Bool
+~~~
+
+<div class="fragment">
+
+How many states can the program `bool` represent?
+
+</div>
+
+#
+
+The following program represents an application with 2^32 possible states.
+
+<div class="fragment">
+
+~~~{.haskell}
+i :: Int32
+~~~
+
+</div>
+
+
+
+<div class="notes">
 
 Correctness is somewhat more difficult to define. It implies an observer, who
 can check the output obtained from the evaluation of a program against the
@@ -52,28 +110,5 @@ consider that an error message is a desired thing in response to incorrect
 input; "halted" may be a desired state in response to the unavailability of
 some resource, and so forth. However, in no case such such a state be
 *unexpected*.
-
-</div>
-
-# States 
-
-`True`
-
-<div class="notes">
-
-
-</div>
-
-# States 
-
-How about these?
-
-  * `x: Boolean`
-
-  * `y: Int`
-
-# States
-
-<div class="notes">
 
 </div>

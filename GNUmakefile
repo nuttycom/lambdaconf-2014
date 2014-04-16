@@ -9,4 +9,4 @@ clean:
 	rm -f slides.html
 
 slides.html: $(SOURCE)
-	$(PANDOC) -f markdown -t revealjs -s $(SOURCE) --self-contained -o slides.html
+	$(PANDOC) -t revealjs -V theme=solarized -s $(SOURCE) -o slides.html
