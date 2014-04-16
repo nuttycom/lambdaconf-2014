@@ -1,5 +1,8 @@
-/slides.html
-/README.html
 tags
 target
 *.swp
+slides.html
+.cabal-sandbox/
+cabal.sandbox.config
+
+
