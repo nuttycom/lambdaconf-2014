@@ -24,6 +24,20 @@ programmer has not prepared the program to operate correctly from.
 
 </div>
 
+# Complexity 
+
+<div class="notes">
+
+When we talk about software programs, we use the word complexity to refer to a
+lot of different things; some, like big-O complexity of algorithms and
+Kolmogorov complexity, are well-defined; much more frequently, we throw the
+word complexity around to refer and vague and handwavey notions of
+comprehensibility, maintainability, and so forth. Throughout this talk though,
+I'm going to strive to focus on a single definition when I refer to complexity:
+how many different possible states can a program represent?
+
+</div>
+
 #
 
 ## What is a program?
@@ -215,6 +229,49 @@ Many don't allow you to define a type representing 2^32^ + 1 states well.
 
 <div class="notes">
 
-
+Sapir-whorf says that language defines what thoughts we can have; in
+programming, languages influence the kinds of data structures that we end up
+using by making different things easy. Unfortunately, most mainstream languages
+today make it really easy to define product types, but at very least a bit more
+challenging or verbose to define sum types. The effect of this is that most
+languages encourage coders to try to define their programs principally in terms
+of product types (objects!) and in doing so encourage them to choose
+representations that literally multiply the complexity of their programs. I'm 
+going to pick on Java here because it's an easy target, but I'm sure that you 
+can see the parallels to most other mainstream languages.
 
 </div>
+
+# 
+~~~{.java}
+interface EitherVisitor<A, B, C> {
+  public C visitLeft(Left<A, B> left);
+  public C visitRight(Right<A, B> right);
+}
+
+interface Either<A, B> {
+  public <C> C accept(EitherVisitor<A, B, C> visitor);
+}
+
+public final class Left<A, B> implements Either<A, B> {
+  public final A value;
+  public Left(A value) {
+    this.value = value;
+  }
+
+  public <C> C accept(EitherVisitor<A, B, C> visitor) {
+    return visitor.visitLeft(this);
+  }
+}
+
+public final class Right<A, B> implements Either<A, B> {
+  public final B value;
+  public Right(B value) {
+    this.value = value;
+  }
+
+  public <C> C accept(EitherVisitor<A, B, C> visitor) {
+    return visitor.visitRight(this);
+  }
+}
+~~~
