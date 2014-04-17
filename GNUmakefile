@@ -4,10 +4,13 @@ STYLE = style.txt
 BIN    = .cabal-sandbox/bin
 PANDOC = $(BIN)/pandoc
 
-all: slides.html
+all: reveal
 
 clean:
-	rm -f slides.html
+	rm -f reveal.html slidy.html
 
-slides.html: $(SOURCE) $(STYLE)
-	$(PANDOC) -f markdown --smart -t revealjs -V theme=beige --include-in-header=$(STYLE) -s $(SOURCE) -o slides.html
+reveal: $(SOURCE) $(STYLE)
+	$(PANDOC) -f markdown --smart -t revealjs -V theme=beige --include-in-header=$(STYLE) -s $(SOURCE) -o reveal.html
+
+slidy: $(SOURCE) $(STYLE)
+	$(PANDOC) -f markdown --smart -t slidy -s $(SOURCE) -o slidy.html

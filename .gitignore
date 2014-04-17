@@ -1,7 +1,8 @@
 tags
 target
 *.swp
-slides.html
+reveal.html
+slidy.html
 .cabal-sandbox/
 cabal.sandbox.config
 

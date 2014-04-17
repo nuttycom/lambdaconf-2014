@@ -4,7 +4,7 @@
 
 April 19, 2014
 
-#
+---------
 
 > "Let me take you on an adventure which will give you superpowers."
 
@@ -38,7 +38,7 @@ how many different possible states can a program represent?
 
 </div>
 
-#
+---------
 
 ## What is a program?
 
@@ -66,7 +66,7 @@ holding; that's fine.
 
 </div>
 
-#
+---------
 
 ## A very simple program
 
@@ -110,7 +110,7 @@ but we can't tell which one from the type, so we'll treat it as occupying both.
 
 </div>
 
-#
+---------
 
 The following program represents an application with 2^32^ possible states.
 
@@ -132,7 +132,7 @@ s :: String
 
 </div>
 
-#
+---------
 
 Let's get a little more involved. How many states does this program represent?
 
@@ -149,7 +149,7 @@ tuple :: (Bool, Int32)
 * 2 * 2^32^ = 2^33^ possible states in total
 </div>
 
-#
+---------
 
 ## Products
 
@@ -171,7 +171,7 @@ The number of possible states is the product of the member's possible states.
 
 </div>
 
-#
+---------
 
 ## Sums
 
@@ -199,7 +199,7 @@ case object None extends Maybe[Nothing]
 ~~~
 </div>
 
-#
+---------
 
 ## Isomorphisms
 
@@ -208,7 +208,7 @@ case object None extends Maybe[Nothing]
 tuple :: (Bool, Int32)
 
 either :: Either Int32 Int32
-
+  
 ~~~
 
 These types are isomorphic.
@@ -242,7 +242,8 @@ can see the parallels to most other mainstream languages.
 
 </div>
 
-# 
+---------
+
 ~~~{.java}
 interface EitherVisitor<A, B, C> {
   public C visitLeft(Left<A, B> left);
@@ -275,3 +276,65 @@ public final class Right<A, B> implements Either<A, B> {
   }
 }
 ~~~
+
+--------
+
+## Error Handling
+
+The best way to handle errors in a program is not to handle them at all.
+Instead, we want to make error states *unrepresentable.*
+
+<div class="notes">
+
+Primitive types are, in general, pretty terrible for this purpose.
+
+Int32 is probably not be a very good type for your domain. What if negative
+values should be regarded as invalid? What if the maximum value you should ever
+expect to encounter is 42? 
+
+And of course, strings are just awful.
+
+</div>
+
+--------
+
+# Strings
+
+<img src="./img/no_strings.png" width="600"/>
+
+_782,000? Not nearly enough._
+
+--------
+
+> The type `String` should only ever appear in your program when a value
+> is being shown to a human being.
+
+--------
+
+## Two egregious offenders
+
+* Strings as dictionary keys
+* Strings as serialized form
+
+_so seductive_
+
+<div class="notes">
+
+Why are strings any worse than any other (potentially infinite) data structure?
+It's that they're convenient. A very common misfeature is to use
+strings as a serialization mechanism. Serializing values as strings is really 
+appealing, because you can just read the serialized form directly. It's also,
+
+</div>
+
+--------
+
+# Side Effects
+
+![](./img/trapped.png)
+
+--------
+
+## Managing Effects
+
+
