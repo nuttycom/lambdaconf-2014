@@ -2,7 +2,7 @@ package asdf
 
 import scalaz._
 import scalaz.std.option._
-import scalaz.syntax.apply._
+import scalaz.syntax.monad._
 import org.specs2.mutable.Specification
 
 class PureASDFDBSpec extends Specification {
@@ -27,6 +27,12 @@ class PureASDFDBSpec extends Specification {
 
   "pure transformations on a value" should {
     "return a pure value" in {
+      val program = "hello".point[Program]
+
+      runPure(ADict.empty())(program) must_== \/.right("hello")
+    }
+
+    "return a pure value following an effect" in {
       val program = for {
         _ <- insert(simpleObjectPath, ASeq.empty())
       } yield "hello"

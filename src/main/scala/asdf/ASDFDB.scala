@@ -11,6 +11,15 @@ import scala.annotation.tailrec
 
 object ASDFDB {
   sealed trait Action[A]
+  object Action {
+    implicit val functor = new Functor[Action] {
+      def map[A, B](fa: Action[A])(f: A => B): Action[B] = fa match {
+        case Insert(path, value, cont) => Insert(path, value, () => f(cont()))
+        case FindOne(path, cont) => FindOne(path, cont andThen f)
+      }
+    }
+  }
+
   case class Insert[A]   private[ASDFDB] (path: Path, value: ASDF, cont: () => A) extends Action[A]
   case class FindOne[A]  private[ASDFDB] (path: Path, cont: Option[ASDF] => A) extends Action[A]
   //case class Delete[A]   private[ASDFDB] (path: Path, cont: () => A) extends Action[A]
