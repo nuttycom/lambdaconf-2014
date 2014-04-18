@@ -18,17 +18,20 @@ class ASDFDBSpec extends Specification {
   val simpleSeqPath1 = Path(Index(1) :: Field(a) :: Nil)
 
   "pure transformations on a value" should {
-    import PureASDFDB._
+    import PureASDFDB.runPure
 
-    "create values at nested paths" in {
+    "insert values at nested paths" in {
       val action = for {
-        _ <- create(simpleObjectPath, ASeq.empty())
-        _ <- create(objectCompositePath, aBool(true))
+        _ <- insert(simpleObjectPath, ASeq.empty())
+        _ <- insert(objectCompositePath, aBool(true))
         v <- findOne(objectCompositePath) 
-      } yield v
+        root <- findOne(Path(Nil))
+      } yield (root, v)
 
-      runAction(ADict.empty())(action) must beLike {
-        case \/-(Some(ABool(v, _))) => v must beTrue
+      runPure(ADict.empty())(action) must beLike {
+        case \/-((Some(root), Some(v))) => 
+          v must_== aBool(true)
+          root must_== aDict(Map(a -> aDict(Map(b -> aSeq(Vector(v))))))
       }
     }
   }

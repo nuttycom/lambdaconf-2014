@@ -24,7 +24,6 @@ object ASDF {
     def empty(meta: Option[ASDF] = None): ASDF = ASeq(Vector(), meta)
   }
 
-
   case class ADict private[ASDF] (data: Map[ADict.Key, ASDF], meta: Option[ASDF]) extends ASDF
   object ADict {
     def empty(meta: Option[ASDF] = None): ASDF = ADict(Map(), meta)
@@ -49,6 +48,6 @@ object ASDF {
 
   def aSeq(v: Vector[ASDF], meta: Option[ASDF] = None): ASDF = ASeq(v, meta)
 
-  def aDict(data: Map[ADict.Key, ASDF], meta: Option[ASDF]): ASDF = ADict(data, meta)
+  def aDict(data: Map[ADict.Key, ASDF], meta: Option[ASDF] = None): ASDF = ADict(data, meta)
 }
 

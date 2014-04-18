@@ -11,13 +11,13 @@ import scala.annotation.tailrec
 
 object ASDFDB {
   sealed trait Action[A]
-  case class Create[A]   private[ASDFDB] (path: Path, value: ASDF, cont: () => A) extends Action[A]
+  case class Insert[A]   private[ASDFDB] (path: Path, value: ASDF, cont: () => A) extends Action[A]
   case class FindOne[A]  private[ASDFDB] (path: Path, cont: Option[ASDF] => A) extends Action[A]
   //case class Delete[A]   private[ASDFDB] (path: Path, cont: () => A) extends Action[A]
 
   type Program[A] = Free[Action, A]
 
-  def create(path: Path, value: ASDF): Program[Unit] = Suspend(Create(path, value, () => Return(())))
+  def insert(path: Path, value: ASDF): Program[Unit] = Suspend(Insert(path, value, () => Return(())))
   def findOne(path: Path): Program[Option[ASDF]] = Suspend(FindOne(path, Return(_)))
   //def delete(path: Path): Program[Unit] = Suspend(Delete(path, () => Return(())))
 }

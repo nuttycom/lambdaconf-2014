@@ -30,7 +30,7 @@ class IOASDFDB {
       actionIO match {
         case Return(a) => a.point[FA[M]#ErrOr]
         case Suspend(FindOne(path, cont)) => ???
-        case Suspend(Create(path, value, cont)) => ???
+        case Suspend(Insert(path, value, cont)) => ???
         //case Suspend(Delete(Path(elems), cont)) => ???
         case Gosub(fa, cont0) => ???
       }
