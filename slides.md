@@ -220,18 +220,6 @@ case object None extends Maybe[Nothing]
 
 ---------
 
-## Isomorphisms
-
-~~~{.haskell}
-
-tuple :: (Bool, Int32)
-
-either :: Either Int32 Int32
-  
-~~~
-
-These types are isomorphic.
-
 # Product Bias 
 
 ~~~{.haskell}
@@ -299,14 +287,16 @@ public final class Right<A, B> implements Either<A, B> {
 
 --------
 
-## Error Handling
+## Minimization
 
-The best way to handle errors in a program is not to handle them at all.
-Instead, we want to make error states *unrepresentable.*
+The best way to handle errors in a program is not to allow them in the first place.
+We want to make error states *unrepresentable.*
+
+To do this, we need to minimize the state space of our program.
+
+Primitive types are, in general, pretty terrible for this.
 
 <div class="notes">
-
-Primitive types are, in general, pretty terrible for this purpose.
 
 Int32 is probably not be a very good type for your domain. What if negative
 values should be regarded as invalid? What if the maximum value you should ever
@@ -360,7 +350,7 @@ serialization and deserialization.
 
 --------
 
-# Mitigation
+## Mitigation
 
 Use newtypes liberally.
 
@@ -421,13 +411,52 @@ collection types if necessary.
 
 Make the compiler work for you.
 
+We have another couple of tools to use when we're thinking about
+minimization.
+
 </div>
+
+--------
+
+## Isomorphisms
+
+~~~{.haskell}
+
+tuple :: (Bool, Int32)
+-- 2^33 states
+
+either :: Either Int32 Int32
+-- 2^33 states
+  
+~~~
+
+These types are isomorphic.
+
+Choose whichever one is most convenient to work with for your purpose.
+
+--------
+
+## Larger Sums
+
+Thus far the sum types we've been talking about have just had two inhabitants.
+But it's frequently useful to have more.
+
+~~~{.scala}
+
+sealed trait JValue
+case class JString(s: String) extends JValue
+case class JNumber(d: BigDecimal) extends JValue
+case class JBool(b: Boolean) extends JValue
+case class JArray(xs: List[JValue]) extends JValue
+case class JObject(fields: Map[String, JValue]) extends JValue
+  
+~~~
 
 --------
 
 # Errors
 
-_If it can go wrong, it needs to have a type._
+_If it can go wrong, give that wrongness a type._
 
 <div class="notes">
 
@@ -548,6 +577,7 @@ rewrite the example.
     - The disjunctive effect of `\/`
 
 ~~~{.scala}
+
 // EitherT[M, A, B] <~> M[A \/ B]
 
 // forSome A . Monad[M] => Monad[[b]EitherT[M, A, b]]
@@ -569,8 +599,66 @@ for {
 
 ![](./img/trapped.png)
 
+> in other words, what was that IO thingy?
+
+<div class="notes">
+
+For those of you not familiar with Haskell or Scalaz, IO is a type constructor
+that represents the presence of a side effect. A value of type IO[String] represents
+some action that can be performed to return a String.
+
+IO is kind of like if you had only a single sensory organ.
+
+It tells you that there's something going on, but it's not very specific about what.
+
+You couldn't, for example, determine whether it was your hair or your hand that 
+was on fire. That sort of thing.
+
+We want to be more specific. And sum types give us a way to do that.
+
+</div>
+
 --------
 
 ## Managing Effects
 
+<div class="notes">
 
+So, where can we start? We want to be specific about effects. 
+
+Also, remember, we started out talking about the fact that we want to 
+minimize the state space of our application. This includes side effects!
+We want to limit ourselves to only the set of effects that we need to
+get the job done.
+
+A set of things? Sounds like a job for a sum type!
+
+</div>
+
+~~~{.scala}
+
+-- def findDocument(key: DocKey): EitherT[IO, DBErr, Document] = ???
+-- def storeWordCount(key: DocKey, wordCount: Long): EitherT[IO, DBErr, Unit] = ???
+
+sealed trait DocAction
+case class FindDocument(key: DocKey) extends DocAction
+case class StoreWordCount(key: DocKey, wordCount: Long) extends DocAction
+  
+~~~
+
+How can we build a program out of these actions?
+
+<div class="fragment">
+
+~~~{.scala}
+
+// Maybe something like this?
+object DocAction {
+  type Program = List[DocAction]
+
+  def runProgram(actions: Program): IO[Unit] = ???
+}
+  
+~~~
+
+</div>
