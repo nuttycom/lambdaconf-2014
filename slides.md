@@ -17,10 +17,9 @@ something very specific: that every state that is representable in source code
 is a valid state, and that no invalid states may be obtained by the process of
 assembly of the program's components. 
 
-Now, this is a fine sentiment, but it obviously depends very much upon what is
-considered to be invalid. A reasonable first estimation of an invalid state is
-one that is unexpected; naturally, such a state definitionally is one that the
-programmer has not prepared the program to operate correctly from.
+An invalid state is one that is unexpected; naturally, such a state
+definitionally is one that the programmer has not prepared the program to
+operate correctly from.
 
 </div>
 
@@ -32,9 +31,11 @@ When we talk about software programs, we use the word complexity to refer to a
 lot of different things; some, like big-O complexity of algorithms and
 Kolmogorov complexity, are well-defined; much more frequently, we throw the
 word complexity around to refer and vague and handwavey notions of
-comprehensibility, maintainability, and so forth. Throughout this talk though,
-I'm going to strive to focus on a single definition when I refer to complexity:
-how many different possible states can a program represent?
+comprehensibility, maintainability, and so forth. 
+
+Throughout this talk though, I'm going to strive to focus on a single
+definition when I refer to complexity: how many different possible states can a
+program represent?
 
 </div>
 
@@ -76,11 +77,7 @@ True
   
 ~~~
 
-<div class="fragment">
-
-This program represents a single state.
-
-</div>
+This program can represent only a single state.
 
 #
 
@@ -92,13 +89,11 @@ bool :: Bool
   
 ~~~
 
-<div class="fragment">
 `::` is pronounced, "has type". <br/>
 
 So the program `bool` has type Bool. <br/>
 
 How many states can the program `bool` represent?
-</div>
 
 <div class="notes">
 
@@ -229,16 +224,17 @@ Many don't allow you to define a type representing 2^32^ + 1 states well.
 
 <div class="notes">
 
-Sapir-whorf says that language defines what thoughts we can have; in
-programming, languages influence the kinds of data structures that we end up
-using by making different things easy. Unfortunately, most mainstream languages
-today make it really easy to define product types, but at very least a bit more
-challenging or verbose to define sum types. The effect of this is that most
-languages encourage coders to try to define their programs principally in terms
-of product types (objects!) and in doing so encourage them to choose
-representations that literally multiply the complexity of their programs. I'm 
-going to pick on Java here because it's an easy target, but I'm sure that you 
-can see the parallels to most other mainstream languages.
+In programming, languages influence the kinds of data structures that we end up
+using by making different things easy. 
+
+Unfortunately, most mainstream languages today make it really easy to define
+product types, but at very least more challenging or verbose to define sum
+types. 
+
+The effect of this is that most languages encourage coders to try to define
+their programs in terms of product types (objects!) and in doing so encourage
+them to choose representations that literally multiply the complexity of their
+programs.
 
 </div>
 
@@ -321,11 +317,14 @@ _so seductive_
 <div class="notes">
 
 Why are strings any worse than any other (potentially infinite) data structure?
-It's that they're convenient. A very common misfeature is to use strings as a
-serialization mechanism. Serializing values as strings is really appealing,
-because you can just read the serialized form directly for debugging and so
-forth. The value of this in badly written systems isn't to be understated, but
-the goal is to write perfect systems.
+It's that they're convenient.
+
+A very common misfeature is to use strings as a serialization mechanism.
+
+Serializing values as strings is really appealing, because you can just read
+the serialized form directly for debugging and so forth. The value of this in
+badly written systems isn't to be understated, but the goal is to write perfect
+systems.
 
 I'm not saying don't ever use strings. But I am saying that String is a data
 type of last result, and that if you're ever going to be encoding any semantic
@@ -377,7 +376,7 @@ case class IPAddr private (addr: String) extends AnyVal
 object IPAddr {
   val pattern = """(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})""".r
 
-  def addr(s: String): Option[IPAddr] = for {
+  def parse(s: String): Option[IPAddr] = for {
     xs <- pattern.unapplySeq(s) if xs.forall(_.toInt <= 255)
   } yield IPAddr(s)
 }
@@ -389,10 +388,11 @@ Given the inputs, that's the best we can do.
 
 <div class="notes">
 
-This applies to virtually every primitive type. Of course, you need to be cautious of
-boxing in languages where this is relevant and code is performance-sensitive, but 
-even in high-performance applications it's rare that you're passing large numbers of
-values around individually; newtype entire collection types if necessary.
+This applies to virtually every primitive type. Of course, you need to be
+cautious of boxing in languages where this is relevant and code is
+performance-sensitive, but even in high-performance applications it's rare that
+you're passing large numbers of values around individually; newtype entire
+collection types if necessary.
 
 Make the compiler work for you.
 
@@ -402,9 +402,67 @@ Make the compiler work for you.
 
 # Errors
 
-
-
 _If it can go wrong, it needs to have a type._
+
+<div class="notes">
+
+We have some good types for error handling in functional languages.
+
+I'm just going to go very quickly into a couple here.
+
+The defining characteristic you'll note is that they're all sums.
+
+Since I use it every day, the examples I'm going to give are going
+to be in scala (from scalaz).
+
+</div>
+
+--------
+
+## import scalaz._
+
+Three very useful types:
+
+* `A \/ B`
+* `Validation[A, B]`
+* `EitherT[M[_], A, B]`
+
+<div class="notes">
+
+The important thing to note here is that all three of these are
+sum types where the error type conventionally comes on the left.
+
+</div>
+
+--------
+
+**`MyErrorType \/ B`**
+
+* `\/` (Disjunction) has a Monad biased to the right
+* We can *sequentially* compose operations that might fail
+* `for` comprehension syntax is useful for this
+
+~~~{.scala}
+
+import scalaz.std.syntax.option._
+
+def parseJson(s: String): ParseError \/ JValue = { ... }
+def findIPField(jv: JValue): ParseError \/ String = { ... }
+
+// remember me?
+object IPAddr {
+  def parse(s: String): Option[IPAddr] = { ... }
+}
+
+for {
+  jv <- parseJson("""{"hostname": "nuttyland", "ipAddr": "127.0.0.1"}""")
+  addrStr <- findIPField(jv)
+  ipAddr <- IPAddr.parse(addrStr) toRightDisjunction {
+    ParseError(s"$addrStr is not a valid IP address")
+  }
+} yield ipAddr
+
+~~~
 
 --------
 
