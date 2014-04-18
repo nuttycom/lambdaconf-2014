@@ -3,10 +3,11 @@ package asdf
 import scalaz._
 import org.specs2.mutable.Specification
 
-class ASDFDBSpec extends Specification {
+class PureASDFDBSpec extends Specification {
   import ASDF._
   import ASDFDB._
   import Path._
+  import PureASDFDB.runPure
 
   val a = ADict.key("a").get
   val b = ADict.key("b").get
@@ -18,8 +19,6 @@ class ASDFDBSpec extends Specification {
   val simpleSeqPath1 = Path(Index(1) :: Field(a) :: Nil)
 
   "pure transformations on a value" should {
-    import PureASDFDB.runPure
-
     "insert values at nested paths" in {
       val action = for {
         _ <- insert(simpleObjectPath, ASeq.empty())
