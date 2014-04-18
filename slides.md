@@ -310,6 +310,7 @@ _782,000? Not nearly enough._
 ## Two egregious offenders
 
 * Strings as dictionary keys
+
 * Strings as serialized form
 
 _so seductive_
@@ -424,7 +425,9 @@ to be in scala (from scalaz).
 Three very useful types:
 
 * `A \/ B`
+
 * `Validation[A, B]`
+
 * `EitherT[M[_], A, B]`
 
 <div class="notes">
@@ -439,29 +442,101 @@ sum types where the error type conventionally comes on the left.
 **`MyErrorType \/ B`**
 
 * `\/` (Disjunction) has a Monad biased to the right
+
 * We can *sequentially* compose operations that might fail
+
 * `for` comprehension syntax is useful for this
 
 ~~~{.scala}
 
 import scalaz.std.syntax.option._
 
-def parseJson(s: String): ParseError \/ JValue = { ... }
-def findIPField(jv: JValue): ParseError \/ String = { ... }
+def parseJson(s: String): ParseError \/ JValue = ???
+def ipField(jv: JValue): ParseError \/ String = ???
 
 // remember me?
 object IPAddr {
-  def parse(s: String): Option[IPAddr] = { ... }
+  def parse(s: String): Option[IPAddr] = ???
 }
 
 for {
   jv <- parseJson("""{"hostname": "nuttyland", "ipAddr": "127.0.0.1"}""")
-  addrStr <- findIPField(jv)
+  addrStr <- ipField(jv)
   ipAddr <- IPAddr.parse(addrStr) toRightDisjunction {
     ParseError(s"$addrStr is not a valid IP address")
   }
 } yield ipAddr
+  
+~~~
 
+--------
+
+**`Validation[NonEmptyList[MyErrorType], B]`**
+
+* Validation **does not** have a Monad instance.
+
+* Composition uses Applicative: conceptually parallel!
+
+* if you need sequencing, `.disjunction`
+
+~~~{.scala}
+
+type VPE[B] = Validation[NonEmptyList[ParseError], B]
+
+def hostname(jv: JValue): VPE[String] = ???
+def ipField(jv: JValue): ParseError \/ String = ???
+
+def parseIP(addrStr: String): ParseError \/ IPAddr = 
+  IPAddr.parse(addrStr) toRightDisjunction {
+    ParseError(s"$addrStr is not a valid IP address")
+  }
+
+def ipAddr(jv: JValue): VPE[IPAddr] = 
+  (ipField(jv) >>= parseIP).validation.leftMap(nels(_)) 
+
+def host(jv: JValue) = 
+  ^[VPE, String, IPAddr, Host](hostname(jv), ipAddr(jv)) { Host.apply _ }
+  
+~~~
+
+<div class="notes">
+
+There is a functor isomorphism between `\/` and validation.
+
+This means that these types have the same information content,
+but we require there to be distinct types so that we can have
+different semantics with respect to how we compose values of
+these types
+
+Let's be honest; this'd be nicer in Haskell. At some point I'll
+rewrite the example.
+
+</div>
+
+--------
+
+**`EitherT[M[_], MyErrorType, B]`**
+
+* EitherT layers together two effects:
+
+    - The "outer" monadic effect of the type constructor M[_]
+
+    - The disjunctive effect of `\/`
+
+~~~{.scala}
+// EitherT[M, A, B] <~> M[A \/ B]
+
+// forSome A . Monad[M] => Monad[[b]EitherT[M, A, b]]
+
+def findDocument(key: DocKey): EitherT[IO, DBErr, Document] = ???
+def storeWordCount(key: DocKey, wordCount: Long): EitherT[IO, DBErr, Unit] = ???
+
+for {
+  doc <- findDocument(myDocKey)
+  words = wordCount(doc)
+  _ <- storeWordCount(myDocKey, words)
+} yield ()
+  
 ~~~
 
 --------
