@@ -461,7 +461,10 @@ case class JObject(fields: Map[String, JValue]) extends JValue
 <div class="notes">
 
 You'll very frequently see sum types like this one referred to as algebraic
-data types. This is a little confusing.
+data types. This is a little confusing, because obviously both sums and products
+are features of a larger algebra of types. So I'm going to refer to these
+ubiquitously as sum types; when people talk about "ADTs" this is usually what
+they mean.
 
 </div>
 
@@ -723,6 +726,8 @@ case class Suspend[F[_], A](s: F[Free[F, A]]) extends Free[F, A]
 
 > for a complete derivation of this type, see [Functional Programming In Scala](http://manning.com/bjarnason)
 
+**Exercise: Write the Monad instance for Free.**
+
 <div class="notes">
 
 This data structure is what's going to take the place of List in our original
@@ -742,9 +747,9 @@ it is used.
 
 --------
 
-## Requirements
+# Requirements
 
-* Must **restrict** the client to only working with actions in our algebra.
+* Must **restrict** the client to only working with actions in our sum type.
 * Must be able to to produce new actions as a result of previous actions.
 * Must be able to interleave pure computations with effectful ones.
 
@@ -752,7 +757,80 @@ it is used.
 
 ## The Rest of the Program
 
+Here's a little trick: store the rest of the program in each action.
+
+~~~{.scala}
+
+// sealed trait DocAction
+// case class FindDocument(key: DocKey) extends DocAction
+// case class StoreWordCount(key: DocKey, wordCount: Long) extends DocAction
+  
+sealed trait DocAction[A]
+case class FindDocument(key: DocKey, cont: Option[Document] => A) extends DocAction[A]
+case class StoreWordCount(key: DocKey, wordCount: Long, cont: () => A) extends DocAction[A]
+  
+~~~
+
 <div class="notes">
+
+This is an implementation detail, really, but it's a critical one. 
+
+Remember, a program is a *value* representing a sequence of operations for an
+interpreter to follow. So, capturing the rest of the program is just capturing
+that description - there's not a lot of overhead to it.
+
+Earlier, we used a list to represent this sequence, and a couple of slides back
+I introduced the Free data structure (which is itself a sum type) as the one
+we'd use to capture the sequence of operations. Let's do that now.
+
+</div>
+
+--------
+
+~~~{.scala}
+
+sealed trait DocAction[A]
+object DocAction {
+  case class FindDocument[A] private[DocAction] (key: DocKey, cont: Option[Document] => A) extends DocAction[A]
+  case class StoreWordCount[A] private[DocAction] (key: DocKey, wordCount: Long, cont: () => A) extends DocAction[A]
+
+  type Program[A] = Free[DocAction, A]
+
+  def findDocument(key: DocKey): Program[Option[Document]] = 
+    Suspend(FindDocument(key, Pure(_)))
+
+  def storeWordCount(key: DocKey, wordCount: Long): Program[Unit] = 
+    Suspend(StoreWordCount(key, wordCount, () => Pure(())))
+}
+  
+~~~
+
+<div class="notes">
+
+We now have a way to create programs, and we know in the abstract that 
+because Free has a Monad, that we can chain those programs together.
+
+So let's see what that looks like.
+
+</div>
+
+--------
+
+~~~{.scala}
+
+val program = for {
+  document <- findDocument(docKey)
+  _ <- document match {
+    case Some(d) => storeWordCount(docKey, countWords(d)) 
+    case None => Free.monad[DocAction].pure(())
+  }
+} yield ()
+  
+~~~~
+
+<div class="notes">
+
+
 
 </div>
 

@@ -1,6 +1,9 @@
 package xample
 
+import free._
+
 trait DocKey
+trait Document
 
 object docProgram1 {
   import scalaz.effect._
@@ -16,32 +19,34 @@ object docProgram1 {
   }
 }
 
-trait Monad[M[_]] {
-  def pure[A](a: => A): M[A]
-  def bind[A, B](ma: M[A])(f: A => M[B]): M[B]
-}
-
-sealed trait Free[F[_], A]
-case class Pure[F[_], A](a: A) extends Free[F, A]
-case class Bind[F[_], A, B](s: Free[F, A], f: A => Free[F, B]) extends Free[F, B]
-case class Suspend[F[_], A](s: F[Free[F, A]]) extends Free[F, A]
-
-object Free {
-  def monad[F[_]] = new Monad[({ type λ[α] = Free[F, α] })#λ] {
-    def pure[A](a: => A): Free[F, A] = Pure(a)
-
-    // def bind[A, B](ma: Free[F, A])(f: A => Free[F, B]): Free[F, B] = Bind(ma, f)
-
-    def bind[A, B](ma: Free[F, A])(f: A => Free[F, B]): Free[F, B] = ma match {
-      case Bind(ma0, f0) => bind(ma0) { a => Bind(f0(a), f) }
-      case other => Bind(other, f)
-    }
-  }
-}
-
 object docProgram2 {
-  sealed trait DocAction
-  case class FindDocument(key: DocKey) extends DocAction
-  case class StoreWordCount(key: DocKey, wordCount: Long) extends DocAction
+  sealed trait DocAction[A]
+  case class FindDocument[A](key: DocKey, cont: Option[Document] => A) extends DocAction[A]
+  case class StoreWordCount[A](key: DocKey, wordCount: Long, cont: () => A) extends DocAction[A]
 }
 
+object docProgram3 {
+  sealed trait DocAction[A]
+  object DocAction {
+    case class FindDocument[A] private[DocAction] (key: DocKey, cont: Option[Document] => A) extends DocAction[A]
+    case class StoreWordCount[A] private[DocAction] (key: DocKey, wordCount: Long, cont: () => A) extends DocAction[A]
+
+    type Program[A] = Free[DocAction, A]
+
+    def findDocument(key: DocKey): Program[Option[Document]] = Suspend(FindDocument(key, Pure(_)))
+
+    def storeWordCount(key: DocKey, wordCount: Long): Program[Unit] = Suspend(StoreWordCount(key, wordCount, () => Pure(())))
+  }
+
+  val docKey: DocKey = ???
+  def countWords(document: Document): Long = ???
+
+  import DocAction._
+  for {
+    document <- findDocument(docKey)
+    _ <- document match {
+      case Some(d) => storeWordCount(docKey, countWords(d)) 
+      case None => Free.monad[DocAction].pure(())
+    }
+  } yield ()
+}
