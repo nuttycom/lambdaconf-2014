@@ -79,7 +79,13 @@ True
 
 This program can represent only a single state.
 
-#
+<div class="notes">
+
+Martial arts anecdote.
+
+</div>
+
+--------
 
 ~~~{.haskell}
 
@@ -452,6 +458,13 @@ case class JObject(fields: Map[String, JValue]) extends JValue
   
 ~~~
 
+<div class="notes">
+
+You'll very frequently see sum types like this one referred to as algebraic
+data types. This is a little confusing.
+
+</div>
+
 --------
 
 # Errors
@@ -664,11 +677,14 @@ object DocAction {
 
 Obviously, this doesn't work.
 * we can't interleave pure computations
-* no representation of return values state
+* no way to represent return values 
+* we can't produce a new DocAction from a Program (noncomposability)
+* we can't decide what later actions should occur
+  as a result of evaluation of earlier actions
 
 But, it *is* conceptually related to what we want.
-* it represents an ordered sequence of actions
-* an interpreter evaluates that sequence
+* a data structure that represents an ordered sequence of actions
+* an interpreter that evaluates this data structure 
 
 -------
 
@@ -706,3 +722,50 @@ case class Suspend[F[_], A](s: F[Free[F, A]]) extends Free[F, A]
 ~~~
 
 > for a complete derivation of this type, see [Functional Programming In Scala](http://manning.com/bjarnason)
+
+<div class="notes">
+
+This data structure is what's going to take the place of List in our original
+broken Program type.
+
+I'm not going to try to walk you through how this particular data structure is
+a logical outcome of our requirements; instead, I'm going to show you how to
+use it, and I think that through the process of using it it'll become obvious
+why it is useful for our purpose.
+
+I hope that by now I've convinced you that what minimizing the state of an
+application is a useful thing to want to achieve. You can work through the
+derivation on your own; it's far more important to me for you to understand how
+it is used.
+
+</div>
+
+--------
+
+## Requirements
+
+* Must **restrict** the client to only working with actions in our algebra.
+* Must be able to to produce new actions as a result of previous actions.
+* Must be able to interleave pure computations with effectful ones.
+
+--------
+
+## The Rest of the Program
+
+<div class="notes">
+
+</div>
+
+--------
+
+## An Effectful Interpreter
+
+<div class="notes">
+
+Tail recursion!
+
+</div>
+
+--------
+
+## A Pure Interpreter
