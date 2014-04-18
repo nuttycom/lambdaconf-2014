@@ -321,11 +321,82 @@ _so seductive_
 <div class="notes">
 
 Why are strings any worse than any other (potentially infinite) data structure?
-It's that they're convenient. A very common misfeature is to use
-strings as a serialization mechanism. Serializing values as strings is really 
-appealing, because you can just read the serialized form directly. It's also,
+It's that they're convenient. A very common misfeature is to use strings as a
+serialization mechanism. Serializing values as strings is really appealing,
+because you can just read the serialized form directly for debugging and so
+forth. The value of this in badly written systems isn't to be understated, but
+the goal is to write perfect systems.
+
+I'm not saying don't ever use strings. But I am saying that String is a data
+type of last result, and that if you're ever going to be encoding any semantic
+information into strings you'd better have bulletproof validation on your
+serialization and deserialization.
 
 </div>
+
+--------
+
+# Mitigation
+
+Use newtypes liberally.
+
+~~~{.haskell}
+
+newtype Name = Name { strValue :: String }
+-- don't export strValue unless you really, really need it
+  
+~~~
+
+~~~{.scala}
+
+case class Name(strValue: String) extends AnyVal
+  
+~~~
+
+**Never, ever pass bare String values<br/>unless it's to `putStrLn` or equivalent.**
+
+**Never, ever return bare String values <br/>except from `readLn` or equivalent**
+
+<div class="notes">
+
+If a string is serving any purpose other than display in your system, then it
+has semantic meaning that should be tracked by the type system. 
+
+</div>
+
+--------
+
+## Mitigation
+
+Hide your newtype constructor behind validation.
+
+~~~{.scala}
+
+case class IPAddr private (addr: String) extends AnyVal
+
+object IPAddr {
+  val pattern = """(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})""".r
+
+  def addr(s: String): Option[IPAddr] = 
+    pattern.unapplySeq(s).filter(_.toInt <= 255).map(_ => IPAddr(s))
+}
+  
+~~~
+
+<div class="notes">
+
+This applies to virtually every primitive type. Of course, you need to be cautious of
+boxing in languages where this is relevant and code is performance-sensitive, but 
+even in high-performance applications it's rare that you're passing large numbers of
+values around individually; newtype entire collection types if necessary.
+
+Make the compiler work for you.
+
+</div>
+
+--------
+
+# Errors
 
 --------
 
