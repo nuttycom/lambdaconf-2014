@@ -1,4 +1,4 @@
-package fperfect
+package asdf
 
 import ASDF._
 import scalaz._

@@ -1,4 +1,4 @@
-package fperfect
+package asdf
 
 import scalaz._
 import scalaz.syntax.equal._
