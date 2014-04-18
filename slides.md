@@ -648,11 +648,12 @@ case class StoreWordCount(key: DocKey, wordCount: Long) extends DocAction
 
 How can we build a program out of these actions?
 
-<div class="fragment">
+--------
+
+## This?
 
 ~~~{.scala}
 
-// Maybe something like this?
 object DocAction {
   type Program = List[DocAction]
 
@@ -661,4 +662,47 @@ object DocAction {
   
 ~~~
 
-</div>
+Obviously, this doesn't work.
+* we can't interleave pure computations
+* no representation of return values state
+
+But, it *is* conceptually related to what we want.
+* it represents an ordered sequence of actions
+* an interpreter evaluates that sequence
+
+-------
+
+# Sequencing
+
+Let's, see, what is good for sequencing effects?
+
+I know! A Monad! But which one?
+
+~~~{.scala}
+
+trait Monad[M[_]] {
+  def point[A](a: => A): M[A]
+  def bind[A, B](ma: M[A])(f: A => M[B]): M[B]
+}
+  
+~~~
+
+* State threads state through a computation...
+* Reader gives the same inputs to all...
+* Writer keeps a log...
+* Not going to be Option, List, ...
+
+--------
+
+# Free
+
+~~~{.scala}
+
+sealed trait Free[F[_], A]
+case class Point[F[_], A](a: A) extends Free[F, A]
+case class Suspend[F[_], A](s: F[Free[F, A]]) extends Free[F, A]
+case class Bind[F[_], A, B](s: Free[F, A], f: A => Free[F, B]) extends Free[F, A]
+  
+~~~
+
+> for a complete derivation of this type, see [Functional Programming In Scala](http://manning.com/bjarnason)
