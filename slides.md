@@ -6,9 +6,9 @@ April 19, 2014
 
 ---------
 
-> "Let me take you on an adventure which will give you superpowers."
+<img src="./img/ras_anvil.jpg" width="400"/>
 
-[Chris Allen](https://twitter.com/bitemyapp/status/455464035987623936)
+> "Let me take you on an adventure which will give you superpowers." --[`@bitemyapp`](https://twitter.com/bitemyapp/status/455464035987623936)
 
 <div class="notes">
 
@@ -377,11 +377,15 @@ case class IPAddr private (addr: String) extends AnyVal
 object IPAddr {
   val pattern = """(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})""".r
 
-  def addr(s: String): Option[IPAddr] = 
-    pattern.unapplySeq(s).filter(_.toInt <= 255).map(_ => IPAddr(s))
+  def addr(s: String): Option[IPAddr] = for {
+    xs <- pattern.unapplySeq(s) if xs.forall(_.toInt <= 255)
+  } yield IPAddr(s)
 }
   
 ~~~
+
+We've shrunk down an infinite number of states to (256^4^ + 1).
+Given the inputs, that's the best we can do.
 
 <div class="notes">
 
@@ -397,6 +401,10 @@ Make the compiler work for you.
 --------
 
 # Errors
+
+
+
+_If it can go wrong, it needs to have a type._
 
 --------
 
