@@ -681,7 +681,7 @@ I know! A Monad! But which one?
 ~~~{.scala}
 
 trait Monad[M[_]] {
-  def point[A](a: => A): M[A]
+  def pure[A](a: => A): M[A]
   def bind[A, B](ma: M[A])(f: A => M[B]): M[B]
 }
   
@@ -699,9 +699,9 @@ trait Monad[M[_]] {
 ~~~{.scala}
 
 sealed trait Free[F[_], A]
-case class Point[F[_], A](a: A) extends Free[F, A]
-case class Suspend[F[_], A](s: F[Free[F, A]]) extends Free[F, A]
+case class Pure[F[_], A](a: A) extends Free[F, A]
 case class Bind[F[_], A, B](s: Free[F, A], f: A => Free[F, B]) extends Free[F, A]
+case class Suspend[F[_], A](s: F[Free[F, A]]) extends Free[F, A]
   
 ~~~
 
