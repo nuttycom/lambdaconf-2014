@@ -149,20 +149,32 @@ tuple :: (Bool, Int32)
 ## Products
 
 ~~~{.haskell}
+ints :: (Int32, Int32)
 
-tuple :: (Int32, Int32)
-  
+tuple3 :: (Bool, Bool, Int32)
 ~~~
 
 <div class="fragment">
 
-2^32^ * 2^32^ = 2^64^
+~~~{.haskell}
+-- if we had type-level functions...
+states :: Type -> Nat
 
-For tuples, we always multiply. 
+states Bool = 2
+states Int32 = 2^32
 
-These are called "product" types
+states (Int32, Int32) = 2^32 * 2^32 = 2^64
+states (Bool, Bool, Int32) = 2 * 2 * 2^32 = 2^34
 
-The number of possible states is the product of the member's possible states.
+states (a, b) = states a * states b
+states (a, b, c) = states a * states b * states c
+
+{--
+For tuples, we always multiply; we call these "product" types as a result.  
+The number of possible states is the cartesian product of the members' 
+possible states.
+--}
+~~~
 
 </div>
 
@@ -180,9 +192,22 @@ data Either a b = Left a | Right b
   
 ~~~
 
-Bool, Maybe and Either are called sum types. Can you see why?
+Bool, Maybe and Either are called sum types. 
 
 <div class="fragment">
+~~~{.haskell}
+
+states Bool = 2
+states (Maybe t) = states t + 1
+states (Either a b) = states a + states b
+  
+~~~
+</div>
+
+---------
+
+## Sums in Scala
+
 ~~~{.scala}
 
 sealed trait Maybe[+A]
@@ -192,7 +217,6 @@ case class Some[A](a: A) extends Maybe[A]
 case object None extends Maybe[Nothing]
   
 ~~~
-</div>
 
 ---------
 
