@@ -12,64 +12,21 @@ April 19, 2014
 
 <div class="notes">
 
-I believe that it is possible to write perfect software. By "perfect", I mean
-something very specific: that every state that is representable in source code
-is a valid state, and that no invalid states may be obtained by the process of
-assembly of the program's components. 
+Trail of Awesome
 
-An invalid state is one that is unexpected; naturally, such a state
-definitionally is one that the programmer has not prepared the program to
-operate correctly from.
+Perfect Programs
 
-</div>
+Not on my board
 
-# Complexity 
+Haskell and Scala
 
-<div class="notes">
-
-When we talk about software programs, we use the word complexity to refer to a
-lot of different things; some, like big-O complexity of algorithms and
-Kolmogorov complexity, are well-defined; much more frequently, we throw the
-word complexity around to refer and vague and handwavey notions of
-comprehensibility, maintainability, and so forth. 
-
-Throughout this talk though, I'm going to strive to focus on a single
-definition when I refer to complexity: how many different possible states can a
-program represent?
+* Going to start with a very simple program.
 
 </div>
 
----------
+-------
 
-## What is a program?
-
-![](./img/moviecode.jpg)
-
-<div class="notes">
-
-A program serves a single purpose: to describe the transformation of
-information from one form to another. Most of the time, this transformation
-involves many intermediate steps, and may involve various parties along the way
-responsible for providing or interpreting the data being transformed. 
-
-You'll note that I say "describes the transformation" rather than "transforms."
-Even if a program is never evaluated, it describes a fact about the universe:
-that some input data can be combined or reduced to yield some output data. 
-
-Now, I'm going to write the simplest program possible.
-
-By the way. I'm going to jump confusingly back and forth between Haskell and
-Scala in this talk, mostly because I don't know Haskell very well. For most
-things, it's just flat out better at expressing them than Scala is, but I think
-that for some other things, until you get used to Haskell syntax, Scala is
-better. This is an opinion some of you will probably throw tomatoes at me for
-holding; that's fine.
-
-</div>
-
----------
-
-## A very simple program
+# A very simple program
 
 ~~~{.haskell }
 
@@ -77,43 +34,37 @@ True
   
 ~~~
 
-This program can represent only a single state.
+This program has only a single possible result.
 
 <div class="notes">
 
-Martial arts anecdote.
+This program doesn't have any bugs.
+
+Is this a program?
+
+A program is a value that describes a transformations from 0 or more inputs to
+some output.
+
+Doesn't do anything by itself though... requires an interpreter.
 
 </div>
 
 --------
+
+How many possible results can the program `bool` have?
 
 ~~~{.haskell}
 
 data Bool = True | False
 
 bool :: Bool
+-- "::" is pronounced, "has type"
   
 ~~~
 
-`::` is pronounced, "has type". <br/>
+<div class="fragment">
 
-So the program `bool` has type Bool. <br/>
-
-How many states can the program `bool` represent?
-
-<div class="notes">
-
-Of course, 1 + 1 = 2
-
-Right, there are two states that a boolean program can occupy.  Since this is a
-pure program and it has no inputs, it'll always return the same one, of course,
-but we can't tell which one from the type, so we'll treat it as occupying both.
-
-</div>
-
----------
-
-The following program represents an application with 2^32^ possible states.
+What about this one?
 
 ~~~{.haskell}
 
@@ -121,9 +72,11 @@ i :: Int32
   
 ~~~
 
+</div>
+
 <div class="fragment">
 
-And this one is just awful...
+This one is just awful...
 
 ~~~{.haskell}
 
@@ -133,9 +86,9 @@ s :: String
 
 </div>
 
----------
+--------
 
-Let's get a little more involved. How many states does this program represent?
+## Counting
 
 ~~~{.haskell}
 
@@ -143,86 +96,69 @@ tuple :: (Bool, Int32)
   
 ~~~
 
-<div class="fragment">
-* 2^32^ states if the value on the left is True
-* 2^32^ states if it's False
+* 2^32^ inhabitants if the value on the left is True
+* 2^32^ inhabitants if it's False
 
-* 2 * 2^32^ = 2^33^ possible states in total
-</div>
+* 2 * 2^32^ = 2^33^ possible inhabitants in total
 
----------
+--------
 
 ## Products
 
 ~~~{.haskell}
-ints :: (Int32, Int32)
 
-tuple3 :: (Bool, Bool, Int32)
+-- if haskell had unsafe type-level pattern matching... 
+inhabitants :: Type -> Nat
+
+inhabitants Bool = 2
+inhabitants Int32 = 2^32
+
+inhabitants (a, b) = inhabitants a * inhabitants b
+inhabitants (Int32, Int32) = 2^32 * 2^32 = 2^64
+
+inhabitants (a, b, c) = inhabitants a * inhabitants b * inhabitants c
+inhabitants (Bool, Bool, Int32) = 2 * 2 * 2^32 = 2^34
+  
 ~~~
 
-<div class="fragment">
+With tuples, we always multiply.
 
-~~~{.haskell}
--- if we had type-level functions...
-states :: Type -> Nat
+We call these "product" types.
 
-states Bool = 2
-states Int32 = 2^32
-
-states (Int32, Int32) = 2^32 * 2^32 = 2^64
-states (Bool, Bool, Int32) = 2 * 2 * 2^32 = 2^34
-
-states (a, b) = states a * states b
-states (a, b, c) = states a * states b * states c
-
-{--
-For tuples, we always multiply; we call these "product" types as a result.  
-The number of possible states is the cartesian product of the members' 
-possible states.
---}
-~~~
-
-</div>
-
----------
+--------
 
 ## Sums
 
 ~~~{.haskell}
 
-data Bool = True | False
-
 data Maybe a = Just a | Nothing
 
+inhabitants (Maybe a) = inhabitants a + 1
+
+
 data Either a b = Left a | Right b
+
+inhabitants (Either a b) = inhabitants a + inhabitants b
   
 ~~~
 
-Bool, Maybe and Either are called sum types. 
+Bool, Maybe and Either are called sum types for the obvious reason.
 
-<div class="fragment">
+--------
+
 ~~~{.haskell}
 
-states Bool = 2
-states (Maybe t) = states t + 1
-states (Either a b) = states a + states b
+tuple :: (Bool, Int32)
+-- 2^33 inhabitants
+
+either :: Either Int32 Int32
+-- 2^33 inhabitants
   
 ~~~
-</div>
 
----------
+These types are isomorphic.
 
-## Sums in Scala
-
-~~~{.scala}
-
-sealed trait Maybe[+A]
-
-case class Some[A](a: A) extends Maybe[A]
-
-case object None extends Maybe[Nothing]
-  
-~~~
+Choose whichever one is most convenient.
 
 ---------
 
@@ -230,29 +166,21 @@ case object None extends Maybe[Nothing]
 
 ~~~{.haskell}
 
-maybe :: Maybe Int32
-
--- (Just) 2^32 + (Nothing) 1
+inhabitants (Maybe Int32) = 2^32 + 1
   
 ~~~
 
 Most languages emphasize products.
 
-Many don't allow you to define a type representing 2^32^ + 1 states well.
+Many don't allow you to define a type with 2^32^ + 1 inhabitants well.
 
 <div class="notes">
 
-In programming, languages influence the kinds of data structures that we end up
-using by making different things easy. 
+Sapir-Whorf
 
-Unfortunately, most mainstream languages today make it really easy to define
-product types, but at very least more challenging or verbose to define sum
-types. 
+Most mainstream languages today make products easy, sums hard.
 
-The effect of this is that most languages encourage coders to try to define
-their programs in terms of product types (objects!) and in doing so encourage
-them to choose representations that literally multiply the complexity of their
-programs.
+Too easy to define types with too many inhabitants.
 
 </div>
 
@@ -291,66 +219,54 @@ public final class Right<A, B> implements Either<A, B> {
 }
 ~~~
 
---------
-
-## Minimization
-
-The best way to handle errors in a program is not to allow them in the first place.
-We want to make error states *unrepresentable.*
-
-To do this, we need to minimize the state space of our program.
-
-Primitive types are, in general, pretty terrible for this.
-
 <div class="notes">
 
-Int32 is probably not be a very good type for your domain. What if negative
-values should be regarded as invalid? What if the maximum value you should ever
-expect to encounter is 42? 
-
-And of course, strings are just awful.
+What does this have to do with writing perfect programs?
 
 </div>
 
 --------
 
-# Strings
+# Errors
 
-<img src="./img/no_strings.png" width="600"/>
+![](./img/bela-lugosi.jpg)
 
-_782,000? Not nearly enough._
-
---------
-
-> The type `String` should only ever appear in your program when a value
-> is being shown to a human being.
-
---------
-
-## Two egregious offenders
-
-* Strings as dictionary keys
-
-* Strings as serialized form
-
-_so seductive_
+> "Bug fixing strategy: forbid yourself to fix the bug. Instead, render 
+> the bug impossible by construction." 
+> --[Paul Phillips](https://twitter.com/extempore2/status/417366903209091073)
 
 <div class="notes">
 
-Why are strings any worse than any other (potentially infinite) data structure?
-It's that they're convenient.
+To do this, we need to minimize the state space of our program.
+
+What types should we not let in?
+
+</div>
+
+--------
+
+# Strings (Ugh.)
+
+> The type `String` should only ever appear in your program when a value is being shown to a human being.
+
+## Two common offenders
+
+* Strings as dictionary keys
+* Strings as serialized form
+
+<div class="notes">
+
+Strings are worse than any other potentially infinite data structure
+because they're convenient.
 
 A very common misfeature is to use strings as a serialization mechanism.
 
-Serializing values as strings is really appealing, because you can just read
-the serialized form directly for debugging and so forth. The value of this in
-badly written systems isn't to be understated, but the goal is to write perfect
-systems.
+Appealing because human readable.
 
-I'm not saying don't ever use strings. But I am saying that String is a data
-type of last result, and that if you're ever going to be encoding any semantic
-information into strings you'd better have bulletproof validation on your
-serialization and deserialization.
+Introduce bugs so that you can have a debugging tool?
+
+Good for being read by humans. But not for machines. Don't turn your value
+into a string until it's about to be turned into photons headed at eyeballs.
 
 </div>
 
@@ -409,81 +325,7 @@ Given the inputs, that's the best we can do.
 
 <div class="notes">
 
-This applies to virtually every primitive type. Of course, you need to be
-cautious of boxing in languages where this is relevant and code is
-performance-sensitive, but even in high-performance applications it's rare that
-you're passing large numbers of values around individually; newtype entire
-collection types if necessary.
-
-Make the compiler work for you.
-
-We have another couple of tools to use when we're thinking about
-minimization.
-
-</div>
-
---------
-
-## Isomorphisms
-
-~~~{.haskell}
-
-tuple :: (Bool, Int32)
--- 2^33 states
-
-either :: Either Int32 Int32
--- 2^33 states
-  
-~~~
-
-These types are isomorphic.
-
-Choose whichever one is most convenient to work with for your purpose.
-
---------
-
-## Larger Sums
-
-Thus far the sum types we've been talking about have just had two inhabitants.
-But it's frequently useful to have more.
-
-~~~{.scala}
-
-sealed trait JValue
-case class JString(s: String) extends JValue
-case class JNumber(d: BigDecimal) extends JValue
-case class JBool(b: Boolean) extends JValue
-case class JArray(xs: List[JValue]) extends JValue
-case class JObject(fields: Map[String, JValue]) extends JValue
-  
-~~~
-
-<div class="notes">
-
-You'll very frequently see sum types like this one referred to as algebraic
-data types. This is a little confusing, because obviously both sums and products
-are features of a larger algebra of types. So I'm going to refer to these
-ubiquitously as sum types; when people talk about "ADTs" this is usually what
-they mean.
-
-</div>
-
---------
-
-# Errors
-
-_If it can go wrong, give that wrongness a type._
-
-<div class="notes">
-
-We have some good types for error handling in functional languages.
-
-I'm just going to go very quickly into a couple here.
-
-The defining characteristic you'll note is that they're all sums.
-
-Since I use it every day, the examples I'm going to give are going
-to be in scala (from scalaz).
+This approach applies to virtually every primitive type. 
 
 </div>
 
@@ -501,18 +343,19 @@ Three very useful types:
 
 <div class="notes">
 
-The important thing to note here is that all three of these are
-sum types where the error type conventionally comes on the left.
+Sum types where the error type conventionally comes on the left.
+
+* Going to quickly look at each of them.
 
 </div>
 
 --------
 
-**`MyErrorType \/ B`**
+**`MyError \/ B`**
 
 * `\/` (Disjunction) has a Monad biased to the right
 
-* We can *sequentially* compose operations that might fail
+* We can *sequentially* compose operations that might fail 
 
 * `for` comprehension syntax is useful for this
 
@@ -523,24 +366,22 @@ import scalaz.std.syntax.option._
 def parseJson(s: String): ParseError \/ JValue = ???
 def ipField(jv: JValue): ParseError \/ String = ???
 
-// remember me?
-object IPAddr {
-  def parse(s: String): Option[IPAddr] = ???
-}
-
-for {
-  jv <- parseJson("""{"hostname": "nuttyland", "ipAddr": "127.0.0.1"}""")
-  addrStr <- ipField(jv)
-  ipAddr <- IPAddr.parse(addrStr) toRightDisjunction {
+def parseIP(addrStr: String): ParseError \/ IPAddr = 
+  IPAddr.parse(addrStr) toRightDisjunction {
     ParseError(s"$addrStr is not a valid IP address")
   }
+
+val ipV: ParseError \/ IPAddr = for {
+  jv <- parseJson("""{"hostname": "nuttyland", "ipAddr": "127.0.0.1"}""")
+  addrStr <- ipField(jv)
+  ipAddr <- parseIP(addrStr)
 } yield ipAddr
   
 ~~~
 
 --------
 
-**`Validation[NonEmptyList[MyErrorType], B]`**
+**`Validation[NonEmptyList[MyError], B]`**
 
 * Validation **does not** have a Monad instance.
 
@@ -553,18 +394,14 @@ for {
 type VPE[B] = Validation[NonEmptyList[ParseError], B]
 
 def hostname(jv: JValue): VPE[String] = ???
+
 def ipField(jv: JValue): ParseError \/ String = ???
+def parseIP(addrStr: String): ParseError \/ IPAddr = ???
 
-def parseIP(addrStr: String): ParseError \/ IPAddr = 
-  IPAddr.parse(addrStr) toRightDisjunction {
-    ParseError(s"$addrStr is not a valid IP address")
-  }
-
-def ipAddr(jv: JValue): VPE[IPAddr] = 
+def host(jv: JValue) = ^[VPE, String, IPAddr, Host](
+  hostname(jv), 
   (ipField(jv) >>= parseIP).validation.leftMap(nels(_)) 
-
-def host(jv: JValue) = 
-  ^[VPE, String, IPAddr, Host](hostname(jv), ipAddr(jv)) { Host.apply _ }
+) { Host.apply _ }
   
 ~~~
 
@@ -572,13 +409,7 @@ def host(jv: JValue) =
 
 There is a functor isomorphism between `\/` and validation.
 
-This means that these types have the same information content,
-but we require there to be distinct types so that we can have
-different semantics with respect to how we compose values of
-these types
-
-Let's be honest; this'd be nicer in Haskell. At some point I'll
-rewrite the example.
+Types have the same information content, but compose differently.
 
 </div>
 
@@ -594,20 +425,24 @@ rewrite the example.
 
 ~~~{.scala}
 
-// EitherT[M, A, B] <~> M[A \/ B]
-
-// forSome A . Monad[M] => Monad[[b]EitherT[M, A, b]]
+// EitherT[M, A, _] <~> M[A \/ _]
 
 def findDocument(key: DocKey): EitherT[IO, DBErr, Document] = ???
 def storeWordCount(key: DocKey, wordCount: Long): EitherT[IO, DBErr, Unit] = ???
 
-for {
+val program: EitherT[IO, DBErr, Unit] = for {
   doc <- findDocument(myDocKey)
   words = wordCount(doc)
   _ <- storeWordCount(myDocKey, words)
 } yield ()
   
 ~~~
+
+<div class="notes">
+
+"Real world" interaction.
+
+</div>
 
 --------
 
@@ -619,9 +454,9 @@ for {
 
 <div class="notes">
 
-For those of you not familiar with Haskell or Scalaz, IO is a type constructor
-that represents the presence of a side effect. A value of type IO[String] represents
-some action that can be performed to return a String.
+What is IO?
+
+A value of type IO[String] represents some action that can be performed to return a String.
 
 IO is kind of like if you had only a single sensory organ.
 
@@ -630,7 +465,7 @@ It tells you that there's something going on, but it's not very specific about w
 You couldn't, for example, determine whether it was your hair or your hand that 
 was on fire. That sort of thing.
 
-We want to be more specific. And sum types give us a way to do that.
+We want to be more specific. Sum types give us a way to do that.
 
 </div>
 
@@ -640,21 +475,18 @@ We want to be more specific. And sum types give us a way to do that.
 
 <div class="notes">
 
-So, where can we start? We want to be specific about effects. 
+Minimizing the number of inhabitants of our program includes minimizing side effects.
 
-Also, remember, we started out talking about the fact that we want to 
-minimize the state space of our application. This includes side effects!
-We want to limit ourselves to only the set of effects that we need to
-get the job done.
+We want to be specific.
 
-A set of things? Sounds like a job for a sum type!
+Sounds like a job for a sum type!
 
 </div>
 
 ~~~{.scala}
 
--- def findDocument(key: DocKey): EitherT[IO, DBErr, Document] = ???
--- def storeWordCount(key: DocKey, wordCount: Long): EitherT[IO, DBErr, Unit] = ???
+// def findDocument(key: DocKey): EitherT[IO, DBErr, Document] = ???
+// def storeWordCount(key: DocKey, wordCount: Long): EitherT[IO, DBErr, Unit] = ???
 
 sealed trait DocAction
 case class FindDocument(key: DocKey) extends DocAction
@@ -669,25 +501,22 @@ How can we build a program out of these actions?
 ## This?
 
 ~~~{.scala}
-
 object DocAction {
   type Program = List[DocAction]
 
   def runProgram(actions: Program): IO[Unit] = ???
 }
-  
 ~~~
 
-Obviously, this doesn't work.
-* we can't interleave pure computations
-* no way to represent return values 
-* we can't produce a new DocAction from a Program (noncomposability)
-* we can't decide what later actions should occur
-  as a result of evaluation of earlier actions
-
-But, it *is* conceptually related to what we want.
-* a data structure that represents an ordered sequence of actions
-* an interpreter that evaluates this data structure 
+* Obviously, this doesn't work.
+    - can't interleave pure computations
+    - no way to represent return values 
+    - can't produce a new DocAction from a Program 
+    - can't make later action a function of an earlier one
+<br/><br/>
+* But, it *is* conceptually related to what we want.
+    - a data structure an ordered sequence of actions
+    - an interpreter that evaluates this data structure 
 
 -------
 
@@ -713,6 +542,22 @@ trait Monad[M[_]] {
 
 --------
 
+# Requirements
+
+* **restrict** the client to only permit actions in our sum
+
+* produce later actions as a function of earlier ones
+
+* interleave pure computations with effectful 
+
+<div class="notes">
+
+Restate relationship of minimization of states to correctness.
+
+</div>
+
+--------
+
 # Free
 
 ~~~{.scala}
@@ -730,28 +575,13 @@ case class Suspend[F[_], A](s: F[Free[F, A]]) extends Free[F, A]
 
 <div class="notes">
 
-This data structure is what's going to take the place of List in our original
-broken Program type.
+This data structure will take the place of List in our broken Program type.
 
-I'm not going to try to walk you through how this particular data structure is
-a logical outcome of our requirements; instead, I'm going to show you how to
+Instead of walking through the derivation, I'm going to show you how to
 use it, and I think that through the process of using it it'll become obvious
 why it is useful for our purpose.
 
-I hope that by now I've convinced you that what minimizing the state of an
-application is a useful thing to want to achieve. You can work through the
-derivation on your own; it's far more important to me for you to understand how
-it is used.
-
 </div>
-
---------
-
-# Requirements
-
-* Must **restrict** the client to only working with actions in our sum type.
-* Must be able to to produce new actions as a result of previous actions.
-* Must be able to interleave pure computations with effectful ones.
 
 --------
 
@@ -820,7 +650,7 @@ So let's see what that looks like.
 
 import DocAction._
 
-val program = for {
+val program: Program[Unit] = for {
   document <- findDocument(docKey)
   _ <- document match {
     case Some(d) => storeWordCount(docKey, countWords(d)) 
@@ -842,6 +672,10 @@ The next thing to do is interpret this data structure.
 
 --------
 
+## A Pure Interpreter
+
+--------
+
 ## An Effectful Interpreter
 
 <div class="notes">
@@ -850,6 +684,3 @@ Tail recursion!
 
 </div>
 
---------
-
-## A Pure Interpreter
