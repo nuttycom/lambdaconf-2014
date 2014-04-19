@@ -818,6 +818,8 @@ So let's see what that looks like.
 
 ~~~{.scala}
 
+import DocAction._
+
 val program = for {
   document <- findDocument(docKey)
   _ <- document match {
@@ -830,7 +832,11 @@ val program = for {
 
 <div class="notes">
 
+While this looks like an effectful program, it's just chaining together calls to
+the Program constructors that we defined previously. So, all that we've done is built
+up a data structure, like our original List, but much more powerful!
 
+The next thing to do is interpret this data structure.
 
 </div>
 
