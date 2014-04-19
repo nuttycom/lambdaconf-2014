@@ -1,6 +1,7 @@
 package xample
 
 import free._
+import scala.annotation.tailrec
 
 trait DocKey
 trait Document
@@ -49,4 +50,36 @@ object docProgram3 {
       case None => Free.monad[DocAction].pure(())
     }
   } yield ()
+
+  type Memory = Map[DocKey, (Document, Option[Long])]
+
+  @tailrec def run[A](program: Program[A], memory: Memory): A = {
+    program match {
+      case Pure(a) => a
+
+      case Suspend(FindDocument(key, cont)) =>
+        run(cont(memory.get(key).map(_._1)), memory)
+
+      case Suspend(StoreWordCount(key, n, cont)) =>
+        val newValue = memory.get(key).map(_.copy(_2 = Some(n)))
+        val newMemory = memory ++ newValue.map(key -> _)
+        run(cont(), newMemory)
+        
+      case Bind(s, f) => 
+        s match {
+          case Pure(a) => run(f(a), memory)
+
+          case Suspend(FindDocument(key, cont)) =>
+            run(Bind(cont(memory.get(key).map(_._1)), f), memory)
+
+          case Suspend(StoreWordCount(key, n, cont)) =>
+            val newValue = memory.get(key).map(_.copy(_2 = Some(n)))
+            val newMemory = memory ++ newValue.map(key -> _)
+            run(Bind(cont(), f), newMemory)
+
+          case Bind(s0, f0) =>
+            run(Bind(s0, (a: Any) => Bind(f0(a), f)), memory)
+        }
+    }
+  }
 }
