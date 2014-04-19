@@ -10,6 +10,8 @@ April 19, 2014
 
 > "Let me take you on an adventure which will give you superpowers." --[`@bitemyapp`](https://twitter.com/bitemyapp/status/455464035987623936)
 
+<https://github.com/nuttycom/lambdaconf-2014-workshop>
+
 <div class="notes">
 
 Trail of Awesome
@@ -20,6 +22,7 @@ Not on my board
 
 Haskell and Scala
 
+* Mention utility of types. - Piper
 * Going to start with a very simple program.
 
 </div>
@@ -565,7 +568,7 @@ case class Suspend[F[_], A](s: F[Free[F, A]]) extends Free[F, A]
 
 > for a complete derivation of this type, see [Functional Programming In Scala](http://manning.com/bjarnason)
 
-**Exercise: Write the Monad instance for Free.**
+**Exercise 1: Write the Monad instance for Free.**
 
 <div class="notes">
 
@@ -812,13 +815,21 @@ type Memory = Map[DocKey, (Document, Option[Long])]
 
 ~~~
 
-**Exercise: Implement a pure interpreter for ASDF**
+**Exercise 2: Implement a pure interpreter for ASDF**
 
 <div class="notes">
 
 After this, we'll work on side-effecting interpreter.
 
 </div>
+
+--------
+
+## Stretch Goals
+
+**Exercise 3: Refactor the tests to allow reuse against other interpreters.**
+
+**Exercise 4: Implement an effectful interpreter for ASDF**
 
 --------
 
