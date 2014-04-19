@@ -1,6 +1,6 @@
 # How To Write A Perfect Program
 
-[Kris Nuttycombe](http://github.com/nuttycom)
+[Kris Nuttycombe](http://github.com/nuttycom) -- [`@nuttycom`](http://twitter.com/nuttycom)
 
 April 19, 2014
 
@@ -579,6 +579,35 @@ why it is useful for our purpose.
 
 --------
 
+## Solution
+
+~~~{.scala}
+
+object Free {
+  def monad[F[_]] = new Monad[({ type λ[α] = Free[F, α] })#λ] {
+    def pure[A](a: => A): Free[F, A] = Pure(a)
+
+    // def bind[A, B](ma: Free[F, A])(f: A => Free[F, B]): Free[F, B] = Bind(ma, f)
+
+    def bind[A, B](ma: Free[F, A])(f: A => Free[F, B]): Free[F, B] = ma match {
+      case Bind(ma0, f0) => bind(ma0) { a => Bind(f0(a), f) }
+      case other => Bind(other, f)
+    }
+  }
+}
+
+~~~
+
+<div class="notes">
+
+Back to our requirements.
+
+Need to chain together 
+
+</div>
+
+--------
+
 ## Capture The Rest of the Program
 
 Here's a little trick: store the rest of the program in each action.
@@ -790,3 +819,7 @@ type Memory = Map[DocKey, (Document, Option[Long])]
 After this, we'll work on side-effecting interpreter.
 
 </div>
+
+--------
+
+# Thank You
