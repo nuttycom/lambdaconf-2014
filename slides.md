@@ -1,4 +1,4 @@
-# Complexity and Reasoning in Functional Programming
+# How To Write A Perfect Program
 
 [Kris Nuttycombe](http://github.com/nuttycom)
 
@@ -26,7 +26,7 @@ Haskell and Scala
 
 -------
 
-# A very simple program
+# Start Very Simple
 
 ~~~{.haskell }
 
@@ -34,24 +34,17 @@ True
   
 ~~~
 
-This program has only a single possible result.
+This program doesn't have any bugs.
 
 <div class="notes">
 
-This program doesn't have any bugs.
-
-Is this a program?
-
-A program is a value that describes a transformations from 0 or more inputs to
-some output.
-
-Doesn't do anything by itself though... requires an interpreter.
+This program has only a single possible result.
 
 </div>
 
 --------
 
-How many possible results can the program `bool` have?
+## Learn To Count
 
 ~~~{.haskell}
 
@@ -64,7 +57,13 @@ bool :: Bool
 
 <div class="fragment">
 
-What about this one?
+1 + 1 = 2 
+
+> applause
+
+</div>
+
+<div class="fragment">
 
 ~~~{.haskell}
 
@@ -88,7 +87,24 @@ s :: String
 
 --------
 
-## Counting
+## Learn to Add
+
+~~~{.haskell}
+
+data Maybe a = Just a | Nothing
+
+inhabitants (Maybe a) = inhabitants a + 1
+
+
+data Either a b = Left a | Right b
+
+inhabitants (Either a b) = inhabitants a + inhabitants b
+  
+~~~
+
+Bool, Maybe and Either are called sum types for the obvious reason.
+
+--------
 
 ~~~{.haskell}
 
@@ -99,11 +115,11 @@ tuple :: (Bool, Int32)
 * 2^32^ inhabitants if the value on the left is True
 * 2^32^ inhabitants if it's False
 
-* 2 * 2^32^ = 2^33^ possible inhabitants in total
+* 2 + 2^32^ = 2 * 2^32 = 2^33^
 
 --------
 
-## Products
+## Learn to Multiply
 
 ~~~{.haskell}
 
@@ -127,31 +143,14 @@ We call these "product" types.
 
 --------
 
-## Sums
+2 + 2^32^ = 2 * 2^32 = 2^33^
 
 ~~~{.haskell}
-
-data Maybe a = Just a | Nothing
-
-inhabitants (Maybe a) = inhabitants a + 1
-
-
-data Either a b = Left a | Right b
-
-inhabitants (Either a b) = inhabitants a + inhabitants b
-  
-~~~
-
-Bool, Maybe and Either are called sum types for the obvious reason.
-
---------
-
-~~~{.haskell}
-
-tuple :: (Bool, Int32)
--- 2^33 inhabitants
 
 either :: Either Int32 Int32
+-- 2^33 inhabitants
+
+tuple :: (Bool, Int32)
 -- 2^33 inhabitants
   
 ~~~
@@ -162,7 +161,7 @@ Choose whichever one is most convenient.
 
 ---------
 
-# Product Bias 
+## Add if you can, multiply if you must
 
 ~~~{.haskell}
 
@@ -171,8 +170,9 @@ inhabitants (Maybe Int32) = 2^32 + 1
 ~~~
 
 Most languages emphasize products.
+<br/><br/>
 
-Many don't allow you to define a type with 2^32^ + 1 inhabitants well.
+Bad ones don't let you define a type <br/>with 2^32^ + 1 inhabitants easily.
 
 <div class="notes">
 
@@ -219,15 +219,9 @@ public final class Right<A, B> implements Either<A, B> {
 }
 ~~~
 
-<div class="notes">
-
-What does this have to do with writing perfect programs?
-
-</div>
-
 --------
 
-# Errors
+# The Vampire Policy
 
 ![](./img/bela-lugosi.jpg)
 
@@ -272,7 +266,7 @@ into a string until it's about to be turned into photons headed at eyeballs.
 
 --------
 
-## Mitigation
+## Garlic
 
 Use newtypes liberally.
 
@@ -302,7 +296,7 @@ has semantic meaning that should be tracked by the type system.
 
 --------
 
-## Mitigation
+## Holy Water
 
 Hide your newtype constructor behind validation.
 
@@ -330,6 +324,8 @@ This approach applies to virtually every primitive type.
 </div>
 
 --------
+
+# Stake
 
 ## import scalaz._
 
@@ -520,11 +516,9 @@ object DocAction {
 
 -------
 
-# Sequencing
+## Sequencing
 
 Let's, see, what is good for sequencing effects?
-
-I know! A Monad! But which one?
 
 ~~~{.scala}
 
@@ -542,7 +536,7 @@ trait Monad[M[_]] {
 
 --------
 
-# Requirements
+## Requirements
 
 * **restrict** the client to only permit actions in our sum
 
@@ -585,7 +579,7 @@ why it is useful for our purpose.
 
 --------
 
-## The Rest of the Program
+## Capture The Rest of the Program
 
 Here's a little trick: store the rest of the program in each action.
 
@@ -617,12 +611,22 @@ we'd use to capture the sequence of operations. Let's do that now.
 
 --------
 
+## Write a Little Language
+
 ~~~{.scala}
 
 sealed trait DocAction[A]
+
 object DocAction {
-  case class FindDocument[A] private[DocAction] (key: DocKey, cont: Option[Document] => A) extends DocAction[A]
-  case class StoreWordCount[A] private[DocAction] (key: DocKey, wordCount: Long, cont: () => A) extends DocAction[A]
+  case class FindDocument[A] private[DocAction] (
+    key: DocKey, 
+    cont: Option[Document] => A
+    ) extends DocAction[A]
+
+  case class StoreWordCount[A] private[DocAction] (
+    key: DocKey, wordCount: Long, 
+    cont: () => A
+    ) extends DocAction[A]
 
   type Program[A] = Free[DocAction, A]
 
@@ -637,6 +641,8 @@ object DocAction {
 
 <div class="notes">
 
+Private constructors, no need to expose them.
+
 We now have a way to create programs, and we know in the abstract that 
 because Free has a Monad, that we can chain those programs together.
 
@@ -645,6 +651,8 @@ So let's see what that looks like.
 </div>
 
 --------
+
+# Write a Perfect Program!
 
 ~~~{.scala}
 
@@ -782,14 +790,3 @@ type Memory = Map[DocKey, (Document, Option[Long])]
 After this, we'll work on side-effecting interpreter.
 
 </div>
-
---------
-
-## An Effectful Interpreter
-
-<div class="notes">
-
-Tail recursion!
-
-</div>
-
