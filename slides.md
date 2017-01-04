@@ -58,11 +58,7 @@ bool :: Bool
   
 ~~~
 
-<div class="fragment">
-
 1 + 1 = 2 
-
-</div>
 
 <div class="notes">
 
@@ -72,15 +68,11 @@ it is false.
 
 </div>
 
-<div class="fragment">
-
 ~~~{.haskell}
 
 i :: Int32
 
 ~~~
-
-</div>
 
 <div class="notes">
 
@@ -89,8 +81,6 @@ integer.
 
 </div>
 
-<div class="fragment">
-
 This one is just awful...
 
 ~~~{.haskell}
@@ -98,8 +88,6 @@ This one is just awful...
 s :: String
 
 ~~~
-
-</div>
 
 <div class="notes">
 
