@@ -62,7 +62,13 @@ bool :: Bool
 
 1 + 1 = 2 
 
-> applause
+</div>
+
+<div class="notes">
+
+There are two possible states of the program implied by a boolean 
+variable - the state in which it is true, and the state in which 
+it is false.
 
 </div>
 
@@ -71,8 +77,15 @@ bool :: Bool
 ~~~{.haskell}
 
 i :: Int32
-  
+
 ~~~
+
+</div>
+
+<div class="notes">
+
+There are 2^32 possible states of the program implied by a 32-bit
+integer.
 
 </div>
 
@@ -83,8 +96,17 @@ This one is just awful...
 ~~~{.haskell}
 
 s :: String
-  
+
 ~~~
+
+</div>
+
+<div class="notes">
+
+The number of states representable by a string is basically all the possible
+memory states of your computer, more or less. It is effectively unbounded.
+And hence, almost useless. Strings should only ever be used for humans to 
+read, never for computers to dispatch on.
 
 </div>
 
