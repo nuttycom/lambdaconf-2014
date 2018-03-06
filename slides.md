@@ -128,7 +128,7 @@ tuple :: (Bool, Int32)
 * 2^32^ inhabitants if the value on the left is True
 * 2^32^ inhabitants if it's False
 
-* 2^32^ + 2^32^ = 2 * 2^32 = 2^33^
+* 2^32^ + 2^32^ = 2 * 2^32^ = 2^33^
 
 --------
 
@@ -156,7 +156,7 @@ We call these "product" types.
 
 --------
 
-2 + 2^32^ = 2 * 2^32 = 2^33^
+2^32^ + 2^32^ = 2 * 2^32^ = 2^33^
 
 ~~~{.haskell}
 
@@ -178,7 +178,7 @@ Choose whichever one is most convenient.
 
 ~~~{.haskell}
 
-inhabitants (Maybe Int32) = 2^32 + 1
+inhabitants (Maybe Int32) = 2^32^ + 1
   
 ~~~
 
